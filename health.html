@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Health Checkup - Pain Assessment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --accent: #9333ea;
+      --bg: #ffffff;
+      --text: #000000;
+      --muted: #666666;
+      --border: #e5e5e5;
+      --card-bg: #f9f9f9;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --safe: #10b981;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.06);
+      --shadow-soft-2: 0 4px 10px rgba(0, 0, 0, 0.08);
+      --transition-fast: 0.18s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-shell {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 100%;
+      margin: 0 auto;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    header.app-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      z-index: 20;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .header-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      background: rgba(147, 51, 234, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .search-bar {
+      padding: 12px 20px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 44px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      outline: none;
+      background: #ffffff;
+      transition: border-color var(--transition-fast);
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    main.app-main {
+      flex: 1;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .checkup-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 18px;
+      box-shadow: var(--shadow-soft);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .checkup-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+      border-color: var(--accent);
+    }
+
+    .checkup-card.hidden {
+      display: none;
+    }
+
+    .card-header {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-icon.safe {
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .card-icon.warning {
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .card-icon.danger {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .card-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .card-content {
+      flex: 1;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .severity-badge {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .severity-badge.safe {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--safe);
+    }
+
+    .severity-badge.warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+
+    .severity-badge.danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .card-description {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .card-details {
+      display: none;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .checkup-card.expanded .card-details {
+      display: block;
+    }
+
+    .detail-section {
+      margin-bottom: 14px;
+    }
+
+    .detail-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .detail-title svg {
+      width: 16px;
+      height: 16px;
+      color: var(--accent);
+    }
+
+    .detail-list {
+      list-style: none;
+      padding-left: 22px;
+    }
+
+    .detail-list li {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 4px;
+      position: relative;
+    }
+
+    .detail-list li:before {
+      content: "•";
+      position: absolute;
+      left: -12px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .action-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-box.safe {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--safe);
+    }
+
+    .action-box.warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .action-box.danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    .action-box svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .toggle-icon {
+      margin-left: auto;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(147, 51, 234, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--transition-fast);
+    }
+
+    .checkup-card.expanded .toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .toggle-icon svg {
+      width: 14px;
+      height: 14px;
+      color: var(--accent);
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .bottom-nav {
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      padding: 8px 12px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 30;
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: var(--muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: color var(--transition-fast);
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f9f9f9;
+      transition: all var(--transition-fast);
+    }
+
+    .nav-item.active .nav-icon {
+      border-color: var(--accent);
+      background: rgba(147, 51, 234, 0.1);
+    }
+
+    .nav-item.active span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 375px) {
+      header.app-header {
+        padding: 16px 16px;
+      }
+
+      main.app-main {
+        padding: 16px 16px;
+      }
+
+      .checkup-card {
+        padding: 14px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      header.app-header {
+        padding: 28px 40px;
+      }
+
+      main.app-main {
+        padding: 28px 40px;
+      }
+
+      .page-title {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2">
+        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+        <path d="M3.22 12H9l2-4 2 8 2-4 1.5 2h4.78"></path>
+      </svg>
+    </div>
+    <h1 class="page-title">Health Checkup</h1>
+    <p class="page-subtitle">Understand your workout pain - Know when to rest and when to see a doctor</p>
+  </header>
+
+  <div class="search-bar">
+    <div class="search-input-wrapper">
+      <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search by pain location, symptom, or body part...">
+    </div>
+  </div>
+
+  <main class="app-main" id="checkupList">
+    
+    <!-- Card 1: Chest Pain - Center -->
+    <div class="checkup-card" data-keywords="chest pain center muscle soreness pectoral exercise">
+      <div class="card-header">
+        <div class="card-icon safe">
+          <svg viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Chest Pain - Center
+            <span class="severity-badge safe">Normal</span>
+          </div>
+          <p class="card-description">Dull ache in the center of chest after push-ups, bench press, or chest exercises</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Soreness in pectoral muscles 24-48 hours after workout</li>
+            <li>Tenderness when touching chest muscles</li>
+            <li>Pain improves with rest and worsens with chest exercises</li>
+            <li>No shortness of breath or sweating</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Why This Happens
+          </div>
+          <ul class="detail-list">
+            <li>Delayed Onset Muscle Soreness (DOMS) from chest workouts</li>
+            <li>Micro-tears in pectoral muscle fibers during exercise</li>
+            <li>Normal response to strength training</li>
+          </ul>
+        </div>
+
+        <div class="action-box safe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Safe: Normal muscle soreness. Rest 48-72 hours, apply ice, and gradually return to training.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Chest Pain - Left Side -->
+    <div class="checkup-card" data-keywords="chest pain left side heart attack cardiac emergency radiating">
+      <div class="card-header">
+        <div class="card-icon danger">
+          <svg viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Chest Pain - Left Side
+            <span class="severity-badge danger">Emergency</span>
+          </div>
+          <p class="card-description">Pressure, tightness, or pain on left side of chest, especially during or after exercise</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Warning Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Pressure, squeezing, or fullness in left chest</li>
+            <li>Pain radiating to left arm, jaw, neck, or back</li>
+            <li>Shortness of breath, sweating, nausea</li>
+            <li>Dizziness or light-headedness</li>
+            <li>Pain lasts more than a few minutes or comes and goes</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Possible Causes
+          </div>
+          <ul class="detail-list">
+            <li>Heart attack (myocardial infarction)</li>
+            <li>Angina (reduced blood flow to heart)</li>
+            <li>Cardiac arrhythmia</li>
+          </ul>
+        </div>
+
+        <div class="action-box danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>EMERGENCY: Call emergency services immediately. Do not drive yourself. This could be a heart attack.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Sharp Knee Pain with Pop Sound -->
+    <div class="checkup-card" data-keywords="knee pain pop sound ligament tear ACL injury joint">
+      <div class="card-header">
+        <div class="card-icon danger">
+          <svg viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Knee Pain with "Pop" Sound
+            <span class="severity-badge danger">See Doctor</span>
+          </div>
+          <p class="card-description">Sudden sharp pain with audible popping during squats, lunges, or running</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Red Flag Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Audible "pop" or "snap" sound during exercise</li>
+            <li>Immediate sharp pain and instability</li>
+            <li>Swelling within hours</li>
+            <li>Unable to bear weight or straighten knee</li>
+            <li>Knee gives out when walking</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Likely Injuries
+          </div>
+          <ul class="detail-list">
+            <li>ACL (Anterior Cruciate Ligament) tear</li>
+            <li>Meniscus tear</li>
+            <li>Patellar tendon rupture</li>
+            <li>MCL/LCL ligament damage</li>
+          </ul>
+        </div>
+
+        <div class="action-box danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+          </svg>
+          <span>See doctor immediately. Stop all exercise. Apply RICE (Rest, Ice, Compression, Elevation). May require MRI and surgery.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Lower Back Pain - Sharp -->
+    <div class="checkup-card" data-keywords="lower back pain sharp spine herniated disc sciatica deadlift">
+      <div class="card-header">
+        <div class="card-icon danger">
+          <svg viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Sharp Lower Back Pain
+            <span class="severity-badge danger">See Doctor</span>
+          </div>
+          <p class="card-description">Sharp, shooting pain in lower back, especially after deadlifts or heavy lifting</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Warning Signs
+          </div>
+          <ul class="detail-list">
+            <li>Sharp, stabbing pain that radiates down legs</li>
+            <li>Numbness or tingling in legs or feet</li>
+            <li>Muscle weakness in legs</li>
+            <li>Loss of bladder or bowel control (emergency)</li>
+            <li>Pain worsens with coughing or sneezing</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Possible Issues
+          </div>
+          <ul class="detail-list">
+            <li>Herniated disc (slipped disc)</li>
+            <li>Sciatica nerve compression</li>
+            <li>Lumbar strain or sprain</li>
+            <li>Spinal stenosis</li>
+          </ul>
+        </div>
+
+        <div class="action-box danger">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+          </svg>
+          <span>See doctor within 24-48 hours. Avoid heavy lifting. May need MRI. Physical therapy often helps.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: Shoulder Pain with Limited Movement -->
+    <div class="checkup-card" data-keywords="shoulder pain rotator cuff impingement frozen shoulder overhead press">
+      <div class="card-header">
+        <div class="card-icon warning">
+          <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Shoulder Pain with Limited Range
+            <span class="severity-badge warning">Monitor</span>
+          </div>
+          <p class="card-description">Pain and difficulty lifting arm overhead after shoulder exercises</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Pain when lifting arm above shoulder height</li>
+            <li>Weakness in shoulder movements</li>
+            <li>Pain at night, especially lying on affected side</li>
+            <li>Clicking or popping sensation</li>
+            <li>Difficulty reaching behind back</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Possible Conditions
+          </div>
+          <ul class="detail-list">
+            <li>Rotator cuff tendinitis or tear</li>
+            <li>Shoulder impingement syndrome</li>
+            <li>Bursitis</li>
+            <li>Frozen shoulder (adhesive capsulitis)</li>
+          </ul>
+        </div>
+
+        <div class="action-box warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          </svg>
+          <span>Rest 3-5 days. If no improvement or pain worsens, see doctor. May need physical therapy or imaging.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6: Muscle Soreness (DOMS) -->
+    <div class="checkup-card" data-keywords="muscle soreness DOMS delayed onset stiffness normal workout">
+      <div class="card-header">
+        <div class="card-icon safe">
+          <svg viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            General Muscle Soreness (DOMS)
+            <span class="severity-badge safe">Normal</span>
+          </div>
+          <p class="card-description">Dull ache in muscles 24-72 hours after intense workout</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Characteristics
+          </div>
+          <ul class="detail-list">
+            <li>Peaks 24-48 hours after workout</li>
+            <li>Dull, achy pain (not sharp)</li>
+            <li>Stiffness and reduced range of motion</li>
+            <li>Tender to touch</li>
+            <li>Gradually improves over 3-5 days</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Science Behind It
+          </div>
+          <ul class="detail-list">
+            <li>Micro-tears in muscle fibers (normal adaptation)</li>
+            <li>Inflammation as part of muscle repair</li>
+            <li>Builds stronger, larger muscles</li>
+            <li>More common after new exercises or increased intensity</li>
+          </ul>
+        </div>
+
+        <div class="action-box safe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Safe and normal. Light activity, stretching, and massage help. Return to training when soreness subsides.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 7: Ankle Swelling After Exercise -->
+    <div class="checkup-card" data-keywords="ankle pain swelling sprain ligament running jumping">
+      <div class="card-header">
+        <div class="card-icon warning">
+          <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Ankle Swelling After Exercise
+            <span class="severity-badge warning">Monitor</span>
+          </div>
+          <p class="card-description">Swelling, bruising, or inability to bear weight on ankle</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Warning Signs
+          </div>
+          <ul class="detail-list">
+            <li>Visible swelling within 2-4 hours</li>
+            <li>Bruising or discoloration</li>
+            <li>Unable to put weight on ankle</li>
+            <li>Ankle feels unstable or gives way</li>
+            <li>Severe pain when moving ankle</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Possible Injuries
+          </div>
+          <ul class="detail-list">
+            <li>Grade 1-3 ankle sprain</li>
+            <li>Ligament tear (ATFL, CFL)</li>
+            <li>Possible fracture if very severe</li>
+            <li>Tendon strain</li>
+          </ul>
+        </div>
+
+        <div class="action-box warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          </svg>
+          <span>Apply RICE immediately. If unable to walk or severe swelling, see doctor within 24 hours for X-ray.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 8: Wrist Pain During Push-ups -->
+    <div class="checkup-card" data-keywords="wrist pain push-ups planks carpal tunnel strain">
+      <div class="card-header">
+        <div class="card-icon safe">
+          <svg viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Wrist Pain During Push-ups
+            <span class="severity-badge safe">Normal</span>
+          </div>
+          <p class="card-description">Discomfort in wrists when bearing weight during push-ups or planks</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Common Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Ache or pressure in wrists during weight-bearing</li>
+            <li>Pain goes away immediately after stopping</li>
+            <li>Weak wrist flexibility</li>
+            <li>Discomfort but no sharp pain</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Why It Happens
+          </div>
+          <ul class="detail-list">
+            <li>Weak wrist stabilizer muscles</li>
+            <li>Poor wrist mobility and flexibility</li>
+            <li>Incorrect hand placement</li>
+            <li>Normal when starting push-up training</li>
+          </ul>
+        </div>
+
+        <div class="action-box safe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Normal for beginners. Strengthen wrists with mobility exercises. Use push-up handles or fists if needed.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 9: Headache During/After Exercise -->
+    <div class="checkup-card" data-keywords="headache exercise exertion migraine dehydration blood pressure">
+      <div class="card-header">
+        <div class="card-icon warning">
+          <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Headache During Exercise
+            <span class="severity-badge warning">Monitor</span>
+          </div>
+          <p class="card-description">Throbbing headache during intense exercise or heavy lifting</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Symptoms to Watch
+          </div>
+          <ul class="detail-list">
+            <li>Sudden, severe "thunderclap" headache (emergency)</li>
+            <li>Throbbing on both sides of head</li>
+            <li>Headache lasts 5 minutes to 48 hours</li>
+            <li>Accompanied by nausea or vision changes</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Possible Causes
+          </div>
+          <ul class="detail-list">
+            <li>Exertion headache (benign, common)</li>
+            <li>Dehydration</li>
+            <li>Holding breath during heavy lifts</li>
+            <li>High blood pressure (rare but serious)</li>
+          </ul>
+        </div>
+
+        <div class="action-box warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          </svg>
+          <span>Usually benign. Hydrate well, breathe properly during lifts. If sudden/severe or with vision changes, see doctor immediately.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 10: Elbow Pain (Tennis/Golfer's Elbow) -->
+    <div class="checkup-card" data-keywords="elbow pain tennis elbow golfer's tendinitis lateral medial epicondylitis">
+      <div class="card-header">
+        <div class="card-icon warning">
+          <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Elbow Pain (Tendinitis)
+            <span class="severity-badge warning">Monitor</span>
+          </div>
+          <p class="card-description">Pain on outside or inside of elbow during bicep curls or tricep exercises</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Pain on outer elbow (tennis elbow) or inner elbow (golfer's elbow)</li>
+            <li>Weakness in grip strength</li>
+            <li>Pain when lifting weights or gripping objects</li>
+            <li>Stiffness in the morning</li>
+            <li>Pain radiates into forearm</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Causes
+          </div>
+          <ul class="detail-list">
+            <li>Overuse of forearm muscles</li>
+            <li>Repetitive gripping motions</li>
+            <li>Poor form during bicep/tricep exercises</li>
+            <li>Using too much weight too soon</li>
+          </ul>
+        </div>
+
+        <div class="action-box warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          </svg>
+          <span>Rest 1-2 weeks. Ice after workouts. Reduce weight and volume. If persists beyond 2 weeks, see doctor for potential physical therapy.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 11: Shin Splints -->
+    <div class="checkup-card" data-keywords="shin splints pain tibia running cardio stress fracture">
+      <div class="card-header">
+        <div class="card-icon warning">
+          <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Shin Splints (Running Pain)
+            <span class="severity-badge warning">Monitor</span>
+          </div>
+          <p class="card-description">Pain along inner edge of shinbone during or after running</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Dull, aching pain along inside of lower leg</li>
+            <li>Pain during exercise that may improve as you warm up</li>
+            <li>Tenderness to touch along shin</li>
+            <li>Mild swelling in lower leg</li>
+            <li>Pain worsens if continuing to run through it</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Risk Factors
+          </div>
+          <ul class="detail-list">
+            <li>Suddenly increasing running distance or intensity</li>
+            <li>Running on hard surfaces</li>
+            <li>Worn-out or improper shoes</li>
+            <li>Flat feet or high arches</li>
+            <li>Weak ankle, hip, or core muscles</li>
+          </ul>
+        </div>
+
+        <div class="action-box warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          </svg>
+          <span>Rest from running 2-4 weeks. Ice and anti-inflammatories. Switch to low-impact cardio. If pain persists, see doctor to rule out stress fracture.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 12: Neck Pain After Overhead Press -->
+    <div class="checkup-card" data-keywords="neck pain stiff overhead press shoulder strain cervical">
+      <div class="card-header">
+        <div class="card-icon safe">
+          <svg viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Neck Stiffness After Lifting
+            <span class="severity-badge safe">Normal</span>
+          </div>
+          <p class="card-description">Stiff or sore neck after overhead press, shoulder exercises, or heavy lifting</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Common Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Muscle tightness on sides or back of neck</li>
+            <li>Reduced range of motion (turning head)</li>
+            <li>Dull ache that improves with movement</li>
+            <li>Tension in upper traps and neck</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Why It Happens
+          </div>
+          <ul class="detail-list">
+            <li>Overactive upper trapezius muscles compensating</li>
+            <li>Poor posture during lifts (head forward)</li>
+            <li>Weak deep neck flexors</li>
+            <li>Normal muscle fatigue from stabilizing heavy loads</li>
+          </ul>
+        </div>
+
+        <div class="action-box safe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Normal muscle soreness. Improve form, keep neck neutral. Stretch and massage. Should resolve in 2-3 days.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 13: Hip Flexor Pain -->
+    <div class="checkup-card" data-keywords="hip flexor pain groin psoas squats lunges running">
+      <div class="card-header">
+        <div class="card-icon warning">
+          <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Hip Flexor Pain
+            <span class="severity-badge warning">Monitor</span>
+          </div>
+          <p class="card-description">Pain in front of hip/groin area during squats, lunges, or running</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Symptoms
+          </div>
+          <ul class="detail-list">
+            <li>Pain in front of hip when lifting knee</li>
+            <li>Discomfort during deep squats</li>
+            <li>Tightness in groin area</li>
+            <li>Pain when going upstairs or running</li>
+            <li>Stiffness after sitting for long periods</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Common Causes
+          </div>
+          <ul class="detail-list">
+            <li>Hip flexor strain from overuse</li>
+            <li>Tight hip flexors from prolonged sitting</li>
+            <li>Weak glutes causing hip flexor compensation</li>
+            <li>Poor squat form (knees caving in)</li>
+          </ul>
+        </div>
+
+        <div class="action-box warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          </svg>
+          <span>Rest 3-7 days. Stretch hip flexors daily. Strengthen glutes. If sharp pain or clicking, see doctor to rule out labral tear.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 14: Calf Cramps During Exercise -->
+    <div class="checkup-card" data-keywords="calf cramp muscle spasm charlie horse dehydration electrolytes">
+      <div class="card-header">
+        <div class="card-icon safe">
+          <svg viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Calf Cramps (Charlie Horse)
+            <span class="severity-badge safe">Normal</span>
+          </div>
+          <p class="card-description">Sudden, sharp muscle spasm in calf during or after exercise</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Characteristics
+          </div>
+          <ul class="detail-list">
+            <li>Sudden, involuntary muscle contraction</li>
+            <li>Intense pain lasting seconds to minutes</li>
+            <li>Visible hard lump in muscle</li>
+            <li>Usually happens during or right after exercise</li>
+            <li>May occur at night after training</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            Common Triggers
+          </div>
+          <ul class="detail-list">
+            <li>Dehydration and electrolyte imbalance</li>
+            <li>Muscle fatigue from overtraining</li>
+            <li>Low potassium, magnesium, or calcium</li>
+            <li>Poor circulation during intense exercise</li>
+          </ul>
+        </div>
+
+        <div class="action-box safe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Normal and benign. Stretch calf immediately. Stay hydrated. Eat potassium and magnesium-rich foods. Warm up properly.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 15: Abdominal Pain During Core Exercises -->
+    <div class="checkup-card" data-keywords="abdominal pain stomach core crunch hernia side stitch">
+      <div class="card-header">
+        <div class="card-icon warning">
+          <svg viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">
+            Abdominal Pain During Core Work
+            <span class="severity-badge warning">Monitor</span>
+          </div>
+          <p class="card-description">Sharp or dull pain in stomach area during crunches, planks, or heavy lifting</p>
+          <div class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-details">
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Different Types
+          </div>
+          <ul class="detail-list">
+            <li>Side stitch: Sharp pain on side during cardio (benign)</li>
+            <li>Ab muscle soreness: Dull ache 24-48 hours later (normal)</li>
+            <li>Sharp central pain with bulge: Possible hernia (see doctor)</li>
+            <li>Nausea with pain: May be eating too close to workout</li>
+          </ul>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4M12 8h.01"></path>
+            </svg>
+            When to Worry
+          </div>
+          <ul class="detail-list">
+            <li>Visible bulge or lump that doesn't go away (hernia)</li>
+            <li>Severe pain that prevents you from standing straight</li>
+            <li>Pain accompanied by fever or vomiting</li>
+            <li>Persistent sharp pain for more than 24 hours</li>
+          </ul>
+        </div>
+
+        <div class="action-box warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          </svg>
+          <span>Side stitch = benign (improve breathing). If visible bulge or severe pain, stop exercise and see doctor to rule out hernia.</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14">
+          <path d="M4 11L12 4l8 7v8a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z" fill="#000"></path>
+        </svg>
+      </div>
+      <span>Home</span>
+    </a>
+    <a href="ai.html" class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#000" stroke-width="2">
+          <circle cx="12" cy="12" r="1"></circle>
+          <circle cx="12" cy="4" r="1"></circle>
+          <circle cx="12" cy="20" r="1"></circle>
+        </svg>
+      </div>
+      <span>AI</span>
+    </a>
+    <a href="workout.html" class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="#000">
+          <rect x="3" y="10" width="4" height="4" rx="1"></rect>
+          <rect x="17" y="10" width="4" height="4" rx="1"></rect>
+          <rect x="7" y="11" width="10" height="2" rx="1"></rect>
+        </svg>
+      </div>
+      <span>Workout</span>
+    </a>
+    <a href="bmi.html" class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#000" stroke-width="2">
+          <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+          <path d="M9 9h6M9 15h6"></path>
+        </svg>
+      </div>
+      <span>Analysis</span>
+    </a>
+    <a href="health.html" class="nav-item active">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="#9333ea">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+        </svg>
+      </div>
+      <span>Checkup</span>
+    </a>
+  </nav>
+</div>
+
+<script>
+// Search functionality
+const searchInput = document.getElementById('searchInput');
+const checkupCards = document.querySelectorAll('.checkup-card');
+
+searchInput.addEventListener('input', function() {
+  const query = this.value.toLowerCase().trim();
+  let visibleCount = 0;
+
+  checkupCards.forEach(card => {
+    const keywords = card.dataset.keywords.toLowerCase();
+    const title = card.querySelector('.card-title').textContent.toLowerCase();
+    const description = card.querySelector('.card-description').textContent.toLowerCase();
+
+    if (keywords.includes(query) || title.includes(query) || description.includes(query) || query === '') {
+      card.classList.remove('hidden');
+      visibleCount++;
+    } else {
+      card.classList.add('hidden');
+      card.classList.remove('expanded');
+    }
+  });
+
+  // Show no results message
+  let noResultsMsg = document.querySelector('.no-results');
+  if (visibleCount === 0 && query !== '') {
+    if (!noResultsMsg) {
+      noResultsMsg = document.createElement('div');
+      noResultsMsg.className = 'no-results';
+      noResultsMsg.textContent = 'No matching pain symptoms found. Try searching for: chest, knee, back, shoulder, muscle, or other body parts.';
+      document.getElementById('checkupList').appendChild(noResultsMsg);
+    }
+  } else if (noResultsMsg) {
+    noResultsMsg.remove();
+  }
+});
+
+// Toggle card expansion
+checkupCards.forEach(card => {
+  card.addEventListener('click', function(e) {
+    // Don't toggle if clicking a link
+    if (e.target.tagName === 'A') return;
+    
+    this.classList.toggle('expanded');
+  });
+});
+</script>
+</body>
+</html>

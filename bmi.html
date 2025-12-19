@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fitness Calculator & Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --accent: #9333ea;
+      --bg: #ffffff;
+      --text: #000000;
+      --muted: #666666;
+      --border: #e5e5e5;
+      --card-bg: #f9f9f9;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.06);
+      --shadow-soft-2: 0 4px 10px rgba(0, 0, 0, 0.08);
+      --transition-fast: 0.18s ease-out;
+      --transition-med: 0.25s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-shell {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 100%;
+      margin: 0 auto;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    /* Header with Profile */
+    header.app-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .profile-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .profile-image-wrapper {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      overflow: hidden;
+      background: #f5f5f5;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: transform var(--transition-fast);
+    }
+
+    .profile-image-wrapper:hover {
+      transform: scale(1.05);
+    }
+
+    .profile-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .profile-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .profile-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .profile-name:hover {
+      color: var(--accent);
+    }
+
+    .profile-stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .profile-stat {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .page-title {
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text);
+    }
+
+    /* Main Content */
+    main.app-main {
+      flex: 1;
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* Calculator Cards */
+    .calculator-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 16px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .calculator-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .calculator-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: rgba(147, 51, 234, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .calculator-icon:hover {
+      background: rgba(147, 51, 234, 0.2);
+      transform: scale(1.05);
+    }
+
+    .calculator-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .calculator-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 14px;
+    }
+
+    .calculator-title {
+      flex: 1;
+    }
+
+    .calculator-title h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .calculator-title p {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .input-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-field label {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .input-field input,
+    .input-field select {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 13px;
+      outline: none;
+      background: #fdfdfd;
+      transition: border-color var(--transition-fast);
+    }
+
+    .input-field input:focus,
+    .input-field select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(147, 51, 234, 0.1);
+    }
+
+    .calculate-btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      box-shadow: 0 6px 16px rgba(147, 51, 234, 0.3);
+    }
+
+    .calculate-btn:hover {
+      box-shadow: 0 8px 20px rgba(147, 51, 234, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .calculate-btn:active {
+      transform: translateY(0);
+    }
+
+    .result-box {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(147, 51, 234, 0.08);
+      border: 1px solid rgba(147, 51, 234, 0.2);
+      display: none;
+    }
+
+    .result-box.visible {
+      display: block;
+    }
+
+    .result-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .result-label {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .result-suggestion {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Weight Sections */
+    .weight-section {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 18px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .section-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(147, 51, 234, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .section-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    .section-title h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .section-title p {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .tip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .tip-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      transition: all var(--transition-fast);
+    }
+
+    .tip-item:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    .tip-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(147, 51, 234, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tip-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .tip-content {
+      flex: 1;
+    }
+
+    .tip-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .tip-description {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
+    .tip-impact {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      padding: 8px 12px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 30;
+      flex-shrink: 0;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color var(--transition-fast);
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f9f9f9;
+      transition: all var(--transition-fast);
+    }
+
+    .nav-item.active .nav-icon {
+      border-color: var(--accent);
+      background: rgba(147, 51, 234, 0.1);
+    }
+
+    .nav-item.active span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Profile Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+    }
+
+    .modal-backdrop.visible {
+      display: flex;
+    }
+
+    .modal-sheet {
+      width: 90%;
+      max-width: 500px;
+      background: var(--bg);
+      border-radius: 20px;
+      padding: 20px 24px 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h3 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close-btn {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f5f5f5;
+      font-size: 11px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .modal-close-btn:hover {
+      background: #ececec;
+    }
+
+    .profile-image-upload {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .profile-image-large {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      overflow: hidden;
+      background: #f5f5f5;
+      margin: 0 auto 10px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .profile-image-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-image-large .placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .upload-hint {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .form-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-field label {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .form-field input {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 13px;
+      outline: none;
+      background: #fdfdfd;
+    }
+
+    .form-field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(147, 51, 234, 0.1);
+    }
+
+    .save-btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      box-shadow: 0 6px 16px rgba(147, 51, 234, 0.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 375px) {
+      header.app-header {
+        padding: 14px 16px;
+      }
+
+      main.app-main {
+        padding: 14px 16px 18px;
+      }
+
+      .profile-image-wrapper {
+        width: 60px;
+        height: 60px;
+      }
+
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .app-shell {
+        max-width: 100%;
+      }
+
+      header.app-header {
+        padding: 24px 40px;
+      }
+
+      main.app-main {
+        padding: 24px 40px 32px;
+      }
+
+      .profile-image-wrapper {
+        width: 80px;
+        height: 80px;
+      }
+
+      .profile-name {
+        font-size: 20px;
+      }
+
+      .calculator-card,
+      .weight-section {
+        padding: 20px;
+      }
+    }
+
+    @media (min-width: 1440px) {
+      header.app-header {
+        padding: 28px 60px;
+      }
+
+      main.app-main {
+        padding: 28px 60px 40px;
+      }
+    }
+
+    /* Image file input hidden */
+    input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-shell">
+  <!-- HEADER WITH PROFILE -->
+  <header class="app-header">
+    <div class="profile-section">
+      <div class="profile-image-wrapper" id="profileImageWrapper">
+        <img src="" id="profileImage" style="display:none;">
+        <div class="profile-placeholder" id="profilePlaceholder">U</div>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name" id="profileName">User Name</div>
+        <div class="profile-stats">
+          <div class="profile-stat">
+            <svg viewBox="0 0 24 24" width="12" height="12">
+              <circle cx="12" cy="12" r="9" stroke="#9333ea" stroke-width="2" fill="none"></circle>
+              <text x="12" y="16" text-anchor="middle" font-size="10" fill="#9333ea" font-weight="700">A</text>
+            </svg>
+            <span id="profileAge">25 yrs</span>
+          </div>
+          <div class="profile-stat">
+            <svg viewBox="0 0 24 24" width="12" height="12">
+              <rect x="8" y="4" width="8" height="16" rx="2" stroke="#9333ea" stroke-width="2" fill="none"></rect>
+              <line x1="12" y1="8" x2="12" y2="16" stroke="#9333ea" stroke-width="2"></line>
+            </svg>
+            <span id="profileWeight">70 kg</span>
+          </div>
+          <div class="profile-stat">
+            <svg viewBox="0 0 24 24" width="12" height="12">
+              <line x1="12" y1="4" x2="12" y2="20" stroke="#9333ea" stroke-width="2"></line>
+              <line x1="8" y1="8" x2="16" y2="8" stroke="#9333ea" stroke-width="2"></line>
+            </svg>
+            <span id="profileHeight">175 cm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-title">Fitness Calculator & Guide</div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="app-main">
+    
+    <!-- BMI CALCULATOR -->
+    <div class="calculator-card">
+      <div class="calculator-header">
+        <div class="calculator-icon" id="bmiIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M6 20c0-4 2.5-7 6-7s6 3 6 7"></path>
+            <path d="M9 13l-2 7M15 13l2 7"></path>
+          </svg>
+        </div>
+        <div class="calculator-title">
+          <h3>BMI Calculator</h3>
+          <p>Calculate your Body Mass Index</p>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <div class="input-field">
+            <label>Weight (kg)</label>
+            <input type="number" id="bmiWeight" placeholder="70" step="0.1">
+          </div>
+          <div class="input-field">
+            <label>Height</label>
+            <select id="bmiHeightUnit">
+              <option value="cm">Centimeters</option>
+              <option value="ft">Feet</option>
+              <option value="in">Inches</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-field" id="bmiHeightContainer">
+  <label id="bmiHeightLabel">Height (cm)</label>
+  <input type="number" id="bmiHeight" placeholder="175" step="0.1">
+</div>
+
+<!-- Hidden feet/inches inputs -->
+<div class="input-row" id="bmiHeightFeetInches" style="display:none;">
+  <div class="input-field">
+    <label>Feet</label>
+    <input type="number" id="bmiHeightFeet" placeholder="5" min="0">
+  </div>
+  <div class="input-field">
+    <label>Inches</label>
+    <input type="number" id="bmiHeightInches" placeholder="7" min="0" max="11">
+  </div>
+</div>
+
+      </div>
+
+      <button class="calculate-btn" onclick="calculateBMI()">Calculate BMI</button>
+
+      <div class="result-box" id="bmiResult">
+        <div class="result-value" id="bmiValue">--</div>
+        <div class="result-label" id="bmiCategory">--</div>
+        <div class="result-suggestion" id="bmiSuggestion">--</div>
+      </div>
+    </div>
+
+    <!-- WATER INTAKE CALCULATOR -->
+    <div class="calculator-card">
+      <div class="calculator-header">
+        <div class="calculator-icon" id="waterIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </div>
+        <div class="calculator-title">
+          <h3>Water Intake Calculator</h3>
+          <p>Daily water recommendation</p>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <div class="input-field">
+            <label>Weight (kg)</label>
+            <input type="number" id="waterWeight" placeholder="70" step="0.1">
+          </div>
+          <div class="input-field">
+            <label>Activity Level</label>
+            <select id="waterActivity">
+              <option value="low">Low</option>
+              <option value="moderate">Moderate</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button class="calculate-btn" onclick="calculateWater()">Calculate Water Intake</button>
+
+      <div class="result-box" id="waterResult">
+        <div class="result-value" id="waterValue">--</div>
+        <div class="result-suggestion" id="waterSuggestion">--</div>
+      </div>
+    </div>
+
+    <!-- IDEAL WEIGHT CALCULATOR -->
+    <div class="calculator-card">
+      <div class="calculator-header">
+        <div class="calculator-icon" id="idealWeightIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 6v6l4 2"></path>
+          </svg>
+        </div>
+        <div class="calculator-title">
+          <h3>Ideal Weight Calculator</h3>
+          <p>Find your healthy weight range</p>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <div class="input-field">
+            <label>Gender</label>
+            <select id="idealGender">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+          <div class="input-field">
+            <label>Height Unit</label>
+            <select id="idealHeightUnit">
+              <option value="cm">Centimeters</option>
+              <option value="ft">Feet</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-field">
+          <label id="idealHeightLabel">Height (cm)</label>
+          <input type="number" id="idealHeight" placeholder="175" step="0.1">
+        </div>
+      </div>
+
+      <button class="calculate-btn" onclick="calculateIdealWeight()">Calculate Ideal Weight</button>
+
+      <div class="result-box" id="idealWeightResult">
+        <div class="result-value" id="idealWeightValue">--</div>
+        <div class="result-suggestion" id="idealWeightSuggestion">--</div>
+      </div>
+    </div>
+
+    <!-- PROTEIN CALCULATOR -->
+    <div class="calculator-card">
+      <div class="calculator-header">
+        <div class="calculator-icon" id="proteinIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2">
+            <rect x="3" y="8" width="18" height="12" rx="2"></rect>
+            <path d="M7 12h10M9 8V6M15 8V6"></path>
+          </svg>
+        </div>
+        <div class="calculator-title">
+          <h3>Protein Calculator</h3>
+          <p>Daily protein requirement</p>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <div class="input-row">
+          <div class="input-field">
+            <label>Weight (kg)</label>
+            <input type="number" id="proteinWeight" placeholder="70" step="0.1">
+          </div>
+          <div class="input-field">
+            <label>Goal</label>
+            <select id="proteinGoal">
+              <option value="maintain">Maintain</option>
+              <option value="lose">Lose Weight</option>
+              <option value="gain">Gain Muscle</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button class="calculate-btn" onclick="calculateProtein()">Calculate Protein</button>
+
+      <div class="result-box" id="proteinResult">
+        <div class="result-value" id="proteinValue">--</div>
+        <div class="result-suggestion" id="proteinSuggestion">--</div>
+      </div>
+    </div>
+
+    <!-- WEIGHT GAIN SECTION -->
+    <div class="weight-section">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2">
+            <path d="M12 5v14M5 12l7 7 7-7"></path>
+          </svg>
+        </div>
+        <div class="section-title">
+          <h3>Weight Gain Guide</h3>
+          <p>Healthy muscle building tips</p>
+        </div>
+      </div>
+
+      <div class="tip-list">
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M12 2c1 0 2 1 2 2v16c0 1-1 2-2 2s-2-1-2-2V4c0-1 1-2 2-2z"></path>
+              <circle cx="12" cy="8" r="2"></circle>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Caloric Surplus</div>
+            <div class="tip-description">Eat 300-500 calories above maintenance. Focus on nutrient-dense foods like nuts, avocados, whole grains.</div>
+            <div class="tip-impact">Impact: 0.25-0.5 kg gain per week (healthy rate)</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+              <path d="M9 9h6M9 12h6M9 15h4" stroke="white" stroke-width="1.5"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Protein Rich Diet</div>
+            <div class="tip-description">Consume 1.6-2.2g protein per kg body weight. Include chicken, fish, eggs, legumes, dairy.</div>
+            <div class="tip-impact">Impact: Better muscle synthesis, visible results in 4-6 weeks</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M7 8h10M7 12h10M7 16h10" stroke="white" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Frequent Meals</div>
+            <div class="tip-description">Eat 5-6 smaller meals daily instead of 3 large ones. Include healthy snacks like trail mix, smoothies.</div>
+            <div class="tip-impact">Impact: Consistent energy, easier calorie surplus maintenance</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <circle cx="12" cy="12" r="8"></circle>
+              <path d="M12 8v4l3 3" stroke="white" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Strength Training</div>
+            <div class="tip-description">Lift weights 4-5 times per week. Focus on compound exercises: squats, deadlifts, bench press.</div>
+            <div class="tip-impact">Impact: Muscle gain of 1-2 kg per month for beginners</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M21 12h-2M5 12H3M12 21v-2M12 5V3M18.36 18.36l-1.42-1.42M7.05 7.05L5.64 5.64" stroke="white" stroke-width="2" stroke-linecap="round"></path>
+              <circle cx="12" cy="12" r="4" fill="white"></circle>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Quality Sleep</div>
+            <div class="tip-description">Get 7-9 hours of sleep nightly. Muscle recovery and growth hormone release happen during sleep.</div>
+            <div class="tip-impact">Impact: 20-30% better recovery, improved strength gains</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Healthy Carbs</div>
+            <div class="tip-description">Include rice, oats, sweet potatoes, quinoa. Carbs fuel workouts and support muscle glycogen.</div>
+            <div class="tip-impact">Impact: More energy for training, faster recovery</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEIGHT LOSS SECTION -->
+    <div class="weight-section">
+      <div class="section-header">
+        <div class="section-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9333ea" stroke-width="2">
+            <path d="M12 19V5M5 12l7-7 7 7"></path>
+          </svg>
+        </div>
+        <div class="section-title">
+          <h3>Weight Loss Guide</h3>
+          <p>Sustainable fat loss strategies</p>
+        </div>
+      </div>
+
+      <div class="tip-list">
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path>
+              <path d="M11 7h2v6h-2z" fill="white"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Caloric Deficit</div>
+            <div class="tip-description">Reduce intake by 300-500 calories below maintenance. Avoid extreme deficits to preserve muscle mass.</div>
+            <div class="tip-impact">Impact: 0.5-1 kg loss per week (sustainable rate)</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+              <path d="M9 12h6" stroke="white" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Cut Added Sugars</div>
+            <div class="tip-description">Eliminate sodas, candies, pastries. Replace with fruits, water, herbal teas for sweet cravings.</div>
+            <div class="tip-impact">Impact: 2-3 kg loss in first month, reduced inflammation</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M8 12h8M12 8v8" stroke="white" stroke-width="2"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Increase Protein</div>
+            <div class="tip-description">Eat 1.6-2g protein per kg. Protein preserves muscle during fat loss and increases satiety.</div>
+            <div class="tip-impact">Impact: 25% higher metabolism, reduced hunger</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M3 12h4l3-9 4 18 3-9h4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Cardio + Weights</div>
+            <div class="tip-description">Combine 3x strength training with 2-3x cardio weekly. Cardio burns calories, weights preserve muscle.</div>
+            <div class="tip-impact">Impact: 15-20% more fat loss compared to cardio alone</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Fiber Rich Foods</div>
+            <div class="tip-description">Eat vegetables, lentils, oats. Fiber keeps you full longer and improves digestion.</div>
+            <div class="tip-impact">Impact: 30% reduced hunger, better gut health</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"></path>
+              <path d="M16 10l-4 4-4-4" stroke="white" stroke-width="2" fill="none"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Reduce Processed Foods</div>
+            <div class="tip-description">Minimize chips, fast food, frozen meals. Cook at home with whole ingredients.</div>
+            <div class="tip-impact">Impact: 1-2 kg loss per month, better energy levels</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon">
+            <svg viewBox="0 0 24 24" fill="#9333ea">
+              <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path>
+              <path d="M9 21h6" stroke="white" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <div class="tip-content">
+            <div class="tip-title">Stay Hydrated</div>
+            <div class="tip-description">Drink 3-4 liters of water daily. Sometimes thirst is mistaken for hunger.</div>
+            <div class="tip-impact">Impact: 10% boost in metabolism, reduced calorie intake</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14">
+          <path d="M4 11L12 4l8 7v8a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z" fill="#000"></path>
+        </svg>
+      </div>
+      <span>Workout</span>
+    </div>
+    <div class="nav-item active">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14">
+          <rect x="3" y="5" width="18" height="14" rx="2" stroke="#9333ea" stroke-width="1.5" fill="none"></rect>
+          <path d="M3 10h18M8 3v4M16 3v4" stroke="#9333ea" stroke-width="1.5"></path>
+        </svg>
+      </div>
+      <span>Calculators</span>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">
+        <svg viewBox="0 0 24 24" width="14" height="14">
+          <circle cx="12" cy="9" r="3" fill="#000"></circle>
+          <path d="M5 19c1.5-3 3.9-4.5 7-4.5s5.5 1.5 7 4.5" stroke="#000" stroke-width="1.5" fill="none"></path>
+        </svg>
+      </div>
+      <span>Profile</span>
+    </div>
+  </nav>
+</div>
+
+<!-- PROFILE EDIT MODAL -->
+<div class="modal-backdrop" id="profileModal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>Edit Profile</h3>
+      <button class="modal-close-btn" id="closeProfileModal">Close</button>
+    </div>
+
+    <div class="profile-image-upload">
+      <div class="profile-image-large" id="profileImageLarge">
+        <img src="" id="profileImagePreview" style="display:none;">
+        <div class="placeholder" id="profilePlaceholderLarge">U</div>
+      </div>
+      <input type="file" id="profileImageInput" accept="image/*">
+      <p class="upload-hint">Click image to upload photo</p>
+    </div>
+
+    <form id="profileForm">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Full Name</label>
+          <input type="text" id="inputName" placeholder="Enter your name">
+        </div>
+        <div class="form-field">
+          <label>Age (years)</label>
+          <input type="number" id="inputAge" placeholder="25">
+        </div>
+        <div class="form-field">
+          <label>Weight (kg)</label>
+          <input type="number" id="inputWeight" placeholder="70" step="0.1">
+        </div>
+        <div class="form-field">
+          <label>Height (cm)</label>
+          <input type="number" id="inputHeight" placeholder="175" step="0.1">
+        </div>
+      </div>
+      <button type="submit" class="save-btn">Save Profile</button>
+    </form>
+  </div>
+</div>
+
+<!-- Icon upload input (hidden, for clicking on calculator icons) -->
+<input type="file" id="iconImageInput" accept="image/*">
+
+<script>
+  // --- DATA & STORAGE ----------------------------------------------------
+  
+  let currentIconId = null;
+  
+  function loadProfile() {
+    const profile = localStorage.getItem('fitnessProfile');
+    if (profile) {
+      const data = JSON.parse(profile);
+      
+      document.getElementById('inputName').value = data.name || '';
+      document.getElementById('inputAge').value = data.age || '';
+      document.getElementById('inputWeight').value = data.weight || '';
+      document.getElementById('inputHeight').value = data.height || '';
+      
+      if (data.name) {
+        document.getElementById('profileName').textContent = data.name;
+        const initial = data.name.charAt(0).toUpperCase();
+        document.getElementById('profilePlaceholder').textContent = initial;
+        document.getElementById('profilePlaceholderLarge').textContent = initial;
+      }
+      
+      if (data.age) {
+        document.getElementById('profileAge').textContent = data.age + ' yrs';
+      }
+      
+      if (data.weight) {
+        document.getElementById('profileWeight').textContent = data.weight + ' kg';
+      }
+      
+      if (data.height) {
+        document.getElementById('profileHeight').textContent = data.height + ' cm';
+      }
+      
+      if (data.image) {
+        document.getElementById('profileImage').src = data.image;
+        document.getElementById('profileImage').style.display = 'block';
+        document.getElementById('profilePlaceholder').style.display = 'none';
+        
+        document.getElementById('profileImagePreview').src = data.image;
+        document.getElementById('profileImagePreview').style.display = 'block';
+        document.getElementById('profilePlaceholderLarge').style.display = 'none';
+      }
+    }
+  }
+  
+  function saveProfile(data) {
+    localStorage.setItem('fitnessProfile', JSON.stringify(data));
+  }
+  
+  function loadIcons() {
+    const icons = localStorage.getItem('calculatorIcons');
+    if (icons) {
+      const data = JSON.parse(icons);
+      Object.keys(data).forEach(iconId => {
+        const iconEl = document.getElementById(iconId);
+        if (iconEl && data[iconId]) {
+          iconEl.innerHTML = `<img src="${data[iconId]}" alt="Icon">`;
+        }
+      });
+    }
+  }
+  
+  function saveIcon(iconId, base64Image) {
+    const icons = localStorage.getItem('calculatorIcons');
+    const data = icons ? JSON.parse(icons) : {};
+    data[iconId] = base64Image;
+    localStorage.setItem('calculatorIcons', JSON.stringify(data));
+  }
+  
+  // --- PROFILE MODAL -----------------------------------------------------
+  
+  document.getElementById('profileImageWrapper').addEventListener('click', () => {
+    document.getElementById('profileModal').classList.add('visible');
+  });
+  
+  document.getElementById('profileName').addEventListener('click', () => {
+    document.getElementById('profileModal').classList.add('visible');
+  });
+  
+  document.getElementById('closeProfileModal').addEventListener('click', () => {
+    document.getElementById('profileModal').classList.remove('visible');
+  });
+  
+  document.getElementById('profileImageLarge').addEventListener('click', () => {
+    document.getElementById('profileImageInput').click();
+  });
+  
+  document.getElementById('profileImageInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('profileImagePreview').src = event.target.result;
+        document.getElementById('profileImagePreview').style.display = 'block';
+        document.getElementById('profilePlaceholderLarge').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  document.getElementById('profileForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('inputName').value.trim();
+    const age = document.getElementById('inputAge').value;
+    const weight = document.getElementById('inputWeight').value;
+    const height = document.getElementById('inputHeight').value;
+    const imagePreview = document.getElementById('profileImagePreview');
+    const image = imagePreview.style.display === 'block' ? imagePreview.src : '';
+    
+    const profile = { name, age, weight, height, image };
+    saveProfile(profile);
+    
+    // Update UI
+    if (name) {
+      document.getElementById('profileName').textContent = name;
+      const initial = name.charAt(0).toUpperCase();
+      document.getElementById('profilePlaceholder').textContent = initial;
+    }
+    
+    if (age) document.getElementById('profileAge').textContent = age + ' yrs';
+    if (weight) document.getElementById('profileWeight').textContent = weight + ' kg';
+    if (height) document.getElementById('profileHeight').textContent = height + ' cm';
+    
+    if (image) {
+      document.getElementById('profileImage').src = image;
+      document.getElementById('profileImage').style.display = 'block';
+      document.getElementById('profilePlaceholder').style.display = 'none';
+    }
+    
+    document.getElementById('profileModal').classList.remove('visible');
+  });
+  
+  // --- ICON UPLOAD -------------------------------------------------------
+  
+  const iconIds = ['bmiIcon', 'waterIcon', 'idealWeightIcon', 'proteinIcon'];
+  
+  iconIds.forEach(iconId => {
+    document.getElementById(iconId).addEventListener('click', () => {
+      currentIconId = iconId;
+      document.getElementById('iconImageInput').click();
+    });
+  });
+  
+  document.getElementById('iconImageInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/') && currentIconId) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const base64 = event.target.result;
+        document.getElementById(currentIconId).innerHTML = `<img src="${base64}" alt="Icon">`;
+        saveIcon(currentIconId, base64);
+        currentIconId = null;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // --- BMI CALCULATOR ----------------------------------------------------
+  
+ document.getElementById('bmiHeightUnit').addEventListener('change', function() {
+  const unit = this.value;
+  const label = document.getElementById('bmiHeightLabel');
+  const singleInput = document.getElementById('bmiHeightContainer');
+  const feetInchesInput = document.getElementById('bmiHeightFeetInches');
+  
+  if (unit === 'cm') {
+    label.textContent = 'Height (cm)';
+    document.getElementById('bmiHeight').placeholder = '175';
+    singleInput.style.display = 'flex';
+    feetInchesInput.style.display = 'none';
+  } else if (unit === 'ft') {
+    singleInput.style.display = 'none';
+    feetInchesInput.style.display = 'grid';
+  } else {
+    label.textContent = 'Height (inches)';
+    document.getElementById('bmiHeight').placeholder = '69';
+    singleInput.style.display = 'flex';
+    feetInchesInput.style.display = 'none';
+  }
+});
+
+  
+  function calculateBMI() {
+  const weight = parseFloat(document.getElementById('bmiWeight').value);
+  const unit = document.getElementById('bmiHeightUnit').value;
+  let height;
+  
+  if (unit === 'ft') {
+    const feet = parseFloat(document.getElementById('bmiHeightFeet').value) || 0;
+    const inches = parseFloat(document.getElementById('bmiHeightInches').value) || 0;
+    
+    if (!weight || !feet) {
+      alert('Please enter weight and height');
+      return;
+    }
+    
+    // Convert feet + inches to cm
+    height = (feet * 12 + inches) * 2.54;
+  } else {
+    height = parseFloat(document.getElementById('bmiHeight').value);
+    
+    if (!weight || !height) {
+      alert('Please enter both weight and height');
+      return;
+    }
+    
+    // Convert other units to cm
+    if (unit === 'in') {
+      height = height * 2.54;
+    }
+  }
+  
+  const heightInMeters = height / 100;
+  const bmi = weight / (heightInMeters * heightInMeters);
+  
+  let category = '';
+  let suggestion = '';
+  
+  if (bmi < 18.5) {
+    category = 'Underweight';
+    suggestion = 'You need to gain weight through a balanced diet rich in protein and healthy calories. Consider strength training.';
+  } else if (bmi >= 18.5 && bmi < 25) {
+    category = 'Normal Weight';
+    suggestion = 'Your weight is in the healthy range. Maintain it through balanced nutrition and regular exercise.';
+  } else if (bmi >= 25 && bmi < 30) {
+    category = 'Overweight';
+    suggestion = 'You need to reduce weight gradually. Focus on caloric deficit, more vegetables, and regular cardio exercise.';
+  } else {
+    category = 'Obese';
+    suggestion = 'You need to control your weight. Consult a nutritionist, create a sustainable deficit, and start light exercise.';
+  }
+  
+  document.getElementById('bmiValue').textContent = bmi.toFixed(1);
+  document.getElementById('bmiCategory').textContent = category;
+  document.getElementById('bmiSuggestion').textContent = suggestion;
+  document.getElementById('bmiResult').classList.add('visible');
+}
+
+  
+  // --- WATER INTAKE CALCULATOR -------------------------------------------
+  
+  function calculateWater() {
+    const weight = parseFloat(document.getElementById('waterWeight').value);
+    const activity = document.getElementById('waterActivity').value;
+    
+    if (!weight) {
+      alert('Please enter your weight');
+      return;
+    }
+    
+    // Base: 30-35ml per kg
+    let waterMl = weight * 33;
+    
+    // Adjust for activity
+    if (activity === 'moderate') {
+      waterMl += 500;
+    } else if (activity === 'high') {
+      waterMl += 1000;
+    }
+    
+    const liters = (waterMl / 1000).toFixed(1);
+    const glasses = Math.round(waterMl / 250);
+    
+    document.getElementById('waterValue').textContent = liters + ' Liters';
+    document.getElementById('waterSuggestion').textContent = 
+      `Drink approximately ${glasses} glasses (250ml each) throughout the day. Increase intake during hot weather or intense workouts.`;
+    document.getElementById('waterResult').classList.add('visible');
+  }
+  
+  // --- IDEAL WEIGHT CALCULATOR -------------------------------------------
+  
+  document.getElementById('idealHeightUnit').addEventListener('change', function() {
+    const unit = this.value;
+    const label = document.getElementById('idealHeightLabel');
+    const input = document.getElementById('idealHeight');
+    
+    if (unit === 'cm') {
+      label.textContent = 'Height (cm)';
+      input.placeholder = '175';
+    } else {
+      label.textContent = 'Height (feet)';
+      input.placeholder = '5.9';
+    }
+  });
+  
+  function calculateIdealWeight() {
+    let height = parseFloat(document.getElementById('idealHeight').value);
+    const unit = document.getElementById('idealHeightUnit').value;
+    const gender = document.getElementById('idealGender').value;
+    
+    if (!height) {
+      alert('Please enter your height');
+      return;
+    }
+    
+    // Convert to cm
+    if (unit === 'ft') {
+      height = height * 30.48;
+    }
+    
+    // Devine Formula
+    let idealWeight;
+    if (gender === 'male') {
+      idealWeight = 50 + 0.9 * (height - 152);
+    } else {
+      idealWeight = 45.5 + 0.9 * (height - 152);
+    }
+    
+    const minWeight = (idealWeight * 0.9).toFixed(1);
+    const maxWeight = (idealWeight * 1.1).toFixed(1);
+    
+    document.getElementById('idealWeightValue').textContent = 
+      `${minWeight} - ${maxWeight} kg`;
+    document.getElementById('idealWeightSuggestion').textContent = 
+      `Your healthy weight range is ${minWeight}kg to ${maxWeight}kg. This is based on height and gender using the Devine formula.`;
+    document.getElementById('idealWeightResult').classList.add('visible');
+  }
+  
+  // --- PROTEIN CALCULATOR ------------------------------------------------
+  
+  function calculateProtein() {
+    const weight = parseFloat(document.getElementById('proteinWeight').value);
+    const goal = document.getElementById('proteinGoal').value;
+    
+    if (!weight) {
+      alert('Please enter your weight');
+      return;
+    }
+    
+    let proteinGrams;
+    let suggestion;
+    
+    if (goal === 'maintain') {
+      proteinGrams = weight * 1.2;
+      suggestion = 'For maintenance, spread protein intake across 3-4 meals. Include lean meats, fish, eggs, dairy, legumes.';
+    } else if (goal === 'lose') {
+      proteinGrams = weight * 1.8;
+      suggestion = 'Higher protein during fat loss preserves muscle. Prioritize protein at each meal to stay full longer.';
+    } else {
+      proteinGrams = weight * 2.0;
+      suggestion = 'For muscle gain, consume protein within 2 hours post-workout. Aim for 0.25-0.4g per kg per meal.';
+    }
+    
+    document.getElementById('proteinValue').textContent = Math.round(proteinGrams) + 'g per day';
+    document.getElementById('proteinSuggestion').textContent = suggestion;
+    document.getElementById('proteinResult').classList.add('visible');
+  }
+  
+  // --- INIT --------------------------------------------------------------
+  
+  loadProfile();
+  loadIcons();
+</script>
+</body>
+</html>
